@@ -32,4 +32,55 @@
 	</ul>
 </div>
 
+<table class="palm-divider collapsible" x-mojo-touch-feedback="delayed" id="optionalDrawerDivider"><tbody>
+		<tr>
+			<td class="left"></td>
+			<td class="label">Optional</td>
+			<td class="line" width="100%"></td>
+			<td><div class="palm-arrow-closed arrow_button" id="optionalDrawerDividerButton"></div></td>
+			<td class="right"></td>
+		</tr>
+</tbody></table>
+<div x-mojo-element="Drawer" id="optionalDrawer">
+	<div class="palm-info-text">
+		The following fields are only needed if you are planning on waking up your
+		device from a network other than the one that the device is connected to
+		(e.g. waking up a home computer from a work network or the cellular
+		provider's network). Please see
+		<a href="http://www.dslreports.com/faq/6790">this DSLReports.com article</a>
+		for information about configuring your router.
+	</div>
+
+	<div class="palm-group">
+		<div class="palm-group-title">Host Name</div>
+		<div class="palm-list">
+			<div class="palm-row single">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div id="targetHostName" class="title" x-mojo-element="TextField"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="palm-info-text">
+		Enter the domain name or IP address where the magic packet should be sent.
+	</div>
+
+	<div class="palm-group">
+		<div class="palm-group-title">Port</div>
+		<div class="palm-list">
+			<div class="palm-row single">
+				<div class="palm-row-wrapper textfield-group" x-mojo-focus-highlight="true">
+					<div id="targetPort" class="title" x-mojo-element="TextField"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="palm-info-text">
+		Enter the port that the magic packet will be sent to. By default the packet will
+		be sent to port number 9. Port number should be numeric.
+	</div>
+</div>
+
 <!--div x-mojo-element="Button" id="tryButton"></div-->

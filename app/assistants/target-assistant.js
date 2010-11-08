@@ -5,18 +5,67 @@ function TargetAssistant(target, targetStore) {
 	   that needs the scene controller should be done in the setup function below. */
 	this.targetStore = targetStore;
 	if (Object.isUndefined(target)) {
-		this.target = {name: "", macAddress: ""};
+		this.target = {name: "", macAddress: "", hostName: ""};
 	} else {
 		this.target = target;
 	}
 }
 
+TargetAssistant.prototype.toggleOptionalDrawer = function() {
+	this.optionalDrawer.mojo.setOpenState(!this.optionalDrawer.mojo.getOpenState());
+
+	if (this.optionalDrawer.mojo.getOpenState() == true)
+		this.controller.get("optionalDrawerDividerButton").removeClassName("palm-arrow-closed").addClassName("palm-arrow-expanded");
+	else
+		this.controller.get("optionalDrawerDividerButton").removeClassName("palm-arrow-expanded").addClassName("palm-arrow-closed");
+}
+
 TargetAssistant.prototype.setup = function() {
 	this.controller.setupWidget(Mojo.Menu.appMenu, { omitDefaultItems: true }, {});
-	this.targetNameModel = {value: this.target.name };
-	this.targetMACModel = {value: this.target.macAddress };
-	this.controller.setupWidget("targetName", { multiline: false }, this.model = this.targetNameModel);
+	this.targetNameModel = { value: this.target.name };
+	this.targetMACModel = { value: this.target.macAddress };
+	this.targetHostModel = { value: this.target.hostName };
+	this.targetPortModel = {value: this.target.hostPort };
+	this.controller.setupWidget("targetName", {
+		multiline: false, textCase: Mojo.Widget.steModeLowerCase
+		}, this.model = this.targetNameModel
+	);
 	this.controller.setupWidget("targetMAC", { multiline: false }, this.model = this.targetMACModel);
+	this.controller.setupWidget("targetHostName", {
+		multiline: false, textCase: Mojo.Widget.steModeLowerCase
+		}, this.model = this.targetHostModel
+	);
+
+	this.controller.setupWidget("targetPort", {
+				multiline: false,
+				textCase: Mojo.Widget.steModeLowerCase,
+				hintText: '9',
+				charsAllow: function(charCode) {
+					var isValid = (charCode >= 48 && charCode <= 57);  // Only allow 0-9
+					if (charCode == 27) {  // 27-Escape is a special case that is also sent by the back gesture so we allow that.
+						isValid = True;
+					}
+					if (!isValid) {
+						Mojo.Controller.errorDialog("Port must be numeric.");
+					}
+					return isValid;
+				}
+			},
+		this.model = this.targetPortModel
+	);
+
+	this.controller.setupWidget("optionalDrawer",
+		this.attributes = {
+			modelProperty: 'open',
+			unstyled: true
+		},
+		this.model = { open: false }
+	);
+
+	this.optionalDrawer = this.controller.get("optionalDrawer");
+	this.controller.listen(this.controller.get("optionalDrawerDivider"), Mojo.Event.tap,
+		this.toggleOptionalDrawer.bindAsEventListener(this)
+	);
 
 	//this.controller.setupWidget("tryButton", {}, { label: "Try Magic Packet", buttonClass: "secondary"});
 	//Mojo.Event.listen("tryButton", Mojo.Event.tap, this.handleTry.bind(this));
@@ -34,9 +83,19 @@ TargetAssistant.prototype.activate = function(event) {
 TargetAssistant.prototype.deactivate = function(event) {
 	/* remove any event handlers you added in activate and do any other cleanup that should happen before
 	   this scene is popped or another scene is pushed on top */
-	target = {name: this.targetNameModel.value, macAddress: this.targetMACModel.value};
-	// Ignore if both fields are blank.
-	if ((target.name === "") && (target.macAddress === "")) {
+	var port = 9;
+	if (!Object.isUndefined(this.targetPortModel.value) && (this.targetPortModel.value != "")) {
+		port = parseInt(this.targetPortModel.value);
+	}
+	target = {
+		name: this.targetNameModel.value,
+		macAddress: this.targetMACModel.value,
+		hostName: this.targetHostModel.value,
+		port: port
+	};
+	
+	// Ignore if either name or mac address field is blank.
+	if ((target.name === "") || (target.macAddress === "")) {
 		return;
 	}
 	this.targetStore.items.push(target);

@@ -18,7 +18,8 @@ MainAssistant.prototype.sendWOL = function(value) {
   if (value == "yes") {
 		this.controller.serviceRequest("palm://com.thebitguru.wolservice", {
 			method: "sendWOL",
-			parameters: {macAddress: this.choosenItem.macAddress, broadcastIP: "255.255.255.255"},
+			parameters: {macAddress: this.choosenItem.macAddress, broadcastIP: this.choosenItem.hostName.strip(),
+				port: this.choosenItem.port},
 			onSuccess: this.sendWOLResponse.bind(this),
 			onFailure: function (repsonse) {
 				this.controller.errorDialog("Sorry, the service call failed.");
@@ -27,6 +28,7 @@ MainAssistant.prototype.sendWOL = function(value) {
 	}
 };
 
+// This is called in response to the "getstatus" service call in handleListTap.
 // Once we get the connection info then we present a dialog box confirming the action.
 MainAssistant.prototype.connectionInfoReceived = function(response) {
   this.controller.showAlertDialog({
@@ -59,6 +61,30 @@ MainAssistant.prototype.handleDeleteTarget = function(event) {
 	this.targetStore.storeDb();
 };
 
+// Dynamically sets the host and ports for display in the item template.
+MainAssistant.prototype.setHostAndPort = function(propertyValue, model) {
+	// For backwards compatibility.
+	if (Object.isUndefined(model.port)) {
+		model.port = 9;
+	}
+	
+	if (model.hostName == "") {
+		if (model.port != 9) {
+			model.hostAndPort = "Port " + model.port;
+			model.hostAndPortDisplay = "block";
+		} else {
+			model.hostAndPort = "";
+			model.hostAndPortDisplay = "none";
+		}
+	} else {
+		if (Object.isUndefined(model.hostName)) {
+			model.hostName = "255.255.255.255";
+		}
+		model.hostAndPort = model.hostName + ", port " + model.port;
+		model.hostAndPortDisplay = "block";
+	}
+}
+
 MainAssistant.prototype.setup = function() {
   /* this function is for setup tasks that have to happen when the scene is first created */
 	this.targetListModel = { items: this.targetStore.items };
@@ -67,7 +93,8 @@ MainAssistant.prototype.setup = function() {
         itemTemplate: "main/target-row_template",
 				addItemLabel: $L("Add..."),
         swipeToDelete: true,
-        reorderable: false
+        reorderable: false,
+				formatters: { hostAndPortDisplay: this.setHostAndPort.bind(this) }
       },
       this.model = this.targetListModel
   );
