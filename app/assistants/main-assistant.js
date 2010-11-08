@@ -63,23 +63,16 @@ MainAssistant.prototype.handleDeleteTarget = function(event) {
 
 // Dynamically sets the host and ports for display in the item template.
 MainAssistant.prototype.setHostAndPort = function(propertyValue, model) {
+	model.hostAndPortDisplay = "block";
 	// For backwards compatibility.
 	if (Object.isUndefined(model.port)) {
 		model.port = 9;
 	}
 	
-	if (model.hostName == "") {
-		if (model.port != 9) {
-			model.hostAndPort = "Port " + model.port;
-			model.hostAndPortDisplay = "block";
-		} else {
-			model.hostAndPort = "";
-			model.hostAndPortDisplay = "none";
-		}
+	if (Object.isUndefined(model.hostName) || (model.hostName == "") || (model.hostName == "255.255.255.255")) {
+		model.hostName = "255.255.255.255";
+		model.hostAndPort = "Local LAN on port " + model.port;
 	} else {
-		if (Object.isUndefined(model.hostName)) {
-			model.hostName = "255.255.255.255";
-		}
 		model.hostAndPort = model.hostName + ", port " + model.port;
 		model.hostAndPortDisplay = "block";
 	}
